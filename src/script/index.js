@@ -23,8 +23,8 @@ window.onload = () => {
 const animate = () => {
 	requestAnimationFrame(animate)
 	ctx.clearRect(0, 0, canvas.width, canvas.height)
-	enemies.forEach((enemey) => {
-		enemey.update()
+	enemies.forEach((enemy) => {
+		enemy.update()
 	})
 	projectiles.forEach((projectile, index) => {
 		projectile.update()
@@ -37,10 +37,31 @@ const animate = () => {
 			console.log('sorti')
 			projectiles.splice(index, 1)
 		}
+
+		enemies.forEach((enemy, eIndex) => {
+			checkCollision(projectile, index, enemy, eIndex)
+		})
 	})
 	player.update()
 
 	movePlayer()
+}
+
+const checkCollision = (projectile, pIndex, enemy, eIndex) => {
+	//x y collision
+	if (
+		projectile.position.x + projectile.radius >=
+			enemy.position.x - enemy.radius &&
+		projectile.position.x - projectile.radius <=
+			enemy.position.x + enemy.radius &&
+		projectile.position.y + projectile.radius >=
+			enemy.position.y - enemy.radius &&
+		projectile.position.y - projectile.radius <=
+			enemy.position.y + enemy.radius
+	) {
+		projectiles.splice(pIndex, 1)
+		enemies.splice(eIndex, 1)
+	}
 }
 
 window.addEventListener('resize', () => {
@@ -129,26 +150,27 @@ class Player {
 			x: 0,
 			y: 0,
 		}
-		this.radius = 20
+		this.radius = 10
 		this.color = color
+		this.distanceIndicator = 10
 	}
 
 	draw(x, y) {
 		this.ctx.beginPath()
 
-		this.ctx.arc(x, y, this.radius / 2, 0, Math.PI * 2)
+		this.ctx.arc(x, y, this.radius, 0, Math.PI * 2)
 		this.ctx.fillStyle = this.color
 		this.ctx.fill()
 		this.ctx.closePath()
 
 		this.ctx.beginPath()
-		this.ctx.arc(
-			x + (this.radius + 0) * Math.cos(getAngle()),
-			y + (this.radius + 0) * Math.sin(getAngle()),
-			2,
-			0,
-			Math.PI * 2
-		)
+
+		let pointerX =
+			x + (this.radius + this.distanceIndicator) * Math.cos(getAngle())
+		let pointerY =
+			y + (this.radius + this.distanceIndicator) * Math.sin(getAngle())
+
+		this.ctx.arc(pointerX, pointerY, 2, 0, Math.PI * 2)
 		this.ctx.fillStyle = 'white'
 		this.ctx.fill()
 		this.ctx.closePath()
@@ -188,13 +210,13 @@ class Enemy {
 			x: (Math.random() - 0.5) * 2,
 			y: (Math.random() - 0.5) * 2,
 		}
-		this.radius = Math.random() * 50 + 5
+		this.radius = Math.random() * 20 + 5
 		this.color = color
 	}
 
 	draw(x, y) {
 		this.ctx.beginPath()
-		this.ctx.arc(x, y, this.radius / 2, 0, Math.PI * 2)
+		this.ctx.arc(x, y, this.radius, 0, Math.PI * 2)
 		this.ctx.fillStyle = this.color
 		this.ctx.fill()
 		this.ctx.closePath()
@@ -228,7 +250,7 @@ class Projectile {
 
 		this.ctx = ctx
 
-		this.radius = 3
+		this.radius = 4
 	}
 
 	draw() {
